@@ -9,6 +9,7 @@ require("./config/dbconfig");
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors());
+app.use(express.static("public"));
 
 const corsOption = {
   origin: ["https://localhost:5173"],
@@ -30,6 +31,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Routes
+const userRoute = require("./routes/userRoute");
+
+app.use("/hrConnect/api/user", userRoute);
 
 const port = process.env.Port || 5000;
 if (process.env.NODE_ENV !== "test")
