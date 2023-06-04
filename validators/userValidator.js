@@ -22,5 +22,24 @@ const validateRegisterUser = [
     validateReq(req, res, next);
   },
 ];
+const validateLoginUser = [
+  body("email").isEmail().withMessage("Invalid Email"),
 
-module.exports = { validateRegisterUser };
+  body("password").notEmpty().withMessage("Password is required"),
+
+  (req, res, next) => {
+    validateReq(req, res, next);
+  },
+];
+const validateResetPassword = [
+  body("email").isEmail().withMessage("Invalid email"),
+  body("otp").notEmpty().withMessage("Enter otp"),
+  body("newPassword").notEmpty().withMessage("Password is required"),
+
+  (req, res, next) => {
+    validateReq(req, res, next);
+  },
+];
+
+
+module.exports = { validateRegisterUser, validateLoginUser, validateResetPassword };
