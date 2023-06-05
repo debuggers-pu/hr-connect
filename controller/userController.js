@@ -199,6 +199,73 @@ const resetPassword = async (req, res) => {
     return res.status(500).json({ error: "Reset password failed" });
   }
 };
-module.exports = { registerUser, emailVerify, loginUser, forgotPassword, resetPassword };
+const updateUserProfileById = async (req, res) => {
+  try {
+    const { fullName, email, password, username, phoneNumber } = req.body;
+    let avatarUrl = null;
+
+    // Check if file was uploaded
+    if (req.file) {
+      avatarUrl = `http://${req.headers.host}/${req.file.path}`;
+    }
+    const url = avatarUrl?.split("/public").join("");
+
+    const update = {
+      fullName: fullName,
+      email: email,
+      avatar: url,
+      username: username,
+      phoneNumber: phoneNumber,
+    };
+
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+      update.password = hashedPassword;
+    }
+
+    const user = await userModel.findByIdAndUpdate(
+      { _id: req.user.id },
+      update,
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "User updated successfully!", updatedInfo: user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error updating user profile" });
+  }
+};
+const deleteUser = async (req, res) => {
+  try {
+    const user = await userModel.findByIdAndDelete(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ message: "User deleted successfully!" });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error deleting user" });
+  }
+};
+const getUserById = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id);
+    if (!user) {
+      res.status(400).json({ message: "No user found!" });
+    }
+    res.status(200).json({ user: user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error while getting user" });
+  }
+};
+module.exports = { registerUser, emailVerify, loginUser, forgotPassword, resetPassword, updateUserProfileById, deleteUser, getUserById };
 
 
