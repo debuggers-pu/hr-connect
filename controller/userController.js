@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
-const jwt = require('jsonwebtoken');  
-const crypto = require('crypto');
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 require("dotenv").config();
 
@@ -248,7 +248,6 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     res.status(200).json({ message: "User deleted successfully!" });
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error deleting user" });
@@ -266,6 +265,13 @@ const getUserById = async (req, res) => {
     res.status(500).json({ error: "Error while getting user" });
   }
 };
-module.exports = { registerUser, emailVerify, loginUser, forgotPassword, resetPassword, updateUserProfileById, deleteUser, getUserById };
-
-
+module.exports = {
+  registerUser,
+  emailVerify,
+  loginUser,
+  forgotPassword,
+  resetPassword,
+  updateUserProfileById,
+  deleteUser,
+  getUserById,
+};
