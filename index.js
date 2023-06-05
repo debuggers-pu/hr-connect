@@ -33,11 +33,8 @@ app.use((req, res, next) => {
 });
 
 // Routes
-const userRoute = require("./routes/userRoute");
-const leaveRoute = require("./routes/leaveRoute");
-
-app.use("/hrConnect/api/user", userRoute);
-app.use("/hrConnect/api/leave", leaveRoute);
+const routers = require("./main.route");
+app.use("/hrConnect/api", routers);
 
 const port = process.env.Port || 5000;
 if (process.env.NODE_ENV !== "test")
