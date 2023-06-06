@@ -9,6 +9,7 @@ const leaveSchema = new mongoose.Schema(
     },
     employeeName: {
       type: String,
+      unique: true,
       required: true,
     },
     leaveType: {
