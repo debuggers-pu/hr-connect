@@ -16,9 +16,15 @@ const leaveType = Object.freeze({
   PATERNITY: "paternity",
   ANNUAL: "annual",
 });
+const attendanceType = Object.freeze({
+  PRESENT: "present",
+  ABSENT: "absent",
+  LEAVE: "leave",
+});
 
 module.exports = {
   userRole,
   status,
   leaveType,
+  attendanceType,
 };
