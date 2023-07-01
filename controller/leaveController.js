@@ -38,7 +38,7 @@ const createLeave = async (req, res) => {
     res.status(500).json({ error: "Error creating leave" });
   }
 };
-
+// update leave
 const updateLeave = async (req, res) => {
   try {
     const { employeeName, reason, startDate, endDate } = req.body;
