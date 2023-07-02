@@ -36,7 +36,7 @@ app.use((req, res, next) => {
 const routers = require("./main.route");
 app.use("/hrConnect/api", routers);
 
-const port = process.env.Port || 8080;
+const port = process.env.Port || 6000;
 if (process.env.NODE_ENV !== "test")
   app.listen(port, () => console.log(`Node server started at port ${port}`));
 
