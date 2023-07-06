@@ -1,0 +1,67 @@
+datasource mongo {
+  provider = "mongodb"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  createdAt DateTime @default(now())
+  firstName String?
+  id        String   @id @default(auto()) @map("_id") @mongo.ObjectId
+  lastName  String?
+  password  String
+  roles     Json
+  updatedAt DateTime @updatedAt
+  username  String   @unique
+}
+
+model Order {
+  createdAt  DateTime  @default(now())
+  customer   Customer?
+  discount   Float?
+  id         String    @id @default(auto()) @map("_id") @mongo.ObjectId
+  product    Product?  @relation(fields: [productId], references: [id])
+  quantity   Int?
+  totalPrice Int?
+  updatedAt  DateTime  @updatedAt
+  productId  String?   @mongo.ObjectId
+}
+
+model Customer {
+  address   Address?
+  createdAt DateTime @default(now())
+  email     String?
+  firstName String?
+  id        String   @id @default(auto()) @map("_id") @mongo.ObjectId
+  lastName  String?
+  orders    Order?   @relation(fields: [orderId], references: [id])
+  phone     String?
+  updatedAt DateTime @updatedAt
+  orderId   String?  @mongo.ObjectId
+}
+
+model Address {
+  address_1  String?
+  address_2  String?
+  city       String?
+  createdAt  DateTime  @default(now())
+  customers  Customer? @relation(fields: [customerId], references: [id])
+  id         String    @id @default(auto()) @map("_id") @mongo.ObjectId
+  state      String?
+  updatedAt  DateTime  @updatedAt
+  zip        Int?
+  customerId String?   @mongo.ObjectId
+}
+
+model Product {
+  createdAt   DateTime @default(now())
+  description String?
+  id          String   @id @default(auto()) @map("_id") @mongo.ObjectId
+  itemPrice   Float?
+  name        String?
+  orders      Order?
+  updatedAt   DateTime @updatedAt
+}
