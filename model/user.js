@@ -46,11 +46,15 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
-    phonepNumber: {
+    phoneNumber: {
       type: String,
       min: 8,
     },
+    
+    location: {
+      type: String,
+    },
+
   },
   {
     timestamps: true,

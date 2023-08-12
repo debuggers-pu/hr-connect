@@ -17,6 +17,17 @@ const validateRegisterUser = [
   body("password")
     .isLength({ min: 6 })
     .withMessage("Password must be greater than 6 characters"),
+  
+  body("phoneNumber")
+    .isLength({ min: 8 })
+    .withMessage("Phone number must be greater than 8 characters")
+    .optional(),
+    
+  body("location")
+    .notEmpty()
+    .withMessage("Location is required")
+    .optional(),
+
 
   (req, res, next) => {
     validateReq(req, res, next);
@@ -42,6 +53,17 @@ const validateUpdateUser = [
     .isLength({ min: 6 })
     .withMessage("Password must be greater than 6 characters")
     .optional(),
+
+  body("phoneNumber")
+    .isLength({ min: 8 })
+    .withMessage("Phone number must be greater than 8 characters")
+    .optional(),
+    
+  body("location")
+    .notEmpty()
+    .withMessage("Location is required")
+    .optional(),
+      
 
   (req, res, next) => {
     validateReq(req, res, next);

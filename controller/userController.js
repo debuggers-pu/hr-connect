@@ -11,8 +11,15 @@ const SECRET_JWT = process.env.SECRET_JWT;
 
 const registerUser = async (req, res) => {
   //data from req
-  const { fullName, username, email, userType, password, phoneNumber } =
-    req.body;
+  const {
+    fullName,
+    username,
+    email,
+    userType,
+    password,
+    phoneNumber,
+    location,
+  } = req.body;
   try {
     // Checking for existing user
     const existingUser = await userModel.findOne({
@@ -45,7 +52,9 @@ const registerUser = async (req, res) => {
       userType: userType,
       avatar: url,
       phoneNumber: phoneNumber,
+      location: location,
     });
+
 
     //generating token for registered user
     const token = jwt.sign({ email: email, id: newUser._id }, SECRET_JWT);
@@ -201,7 +210,7 @@ const resetPassword = async (req, res) => {
 };
 const updateUserProfileById = async (req, res) => {
   try {
-    const { fullName, email, password, username, phoneNumber } = req.body;
+    const { fullName, email, password, username, phoneNumber, location} = req.body;
     let avatarUrl = null;
 
     // Check if file was uploaded
@@ -216,6 +225,7 @@ const updateUserProfileById = async (req, res) => {
       avatar: url,
       username: username,
       phoneNumber: phoneNumber,
+      location: location,
     };
 
     if (password) {
