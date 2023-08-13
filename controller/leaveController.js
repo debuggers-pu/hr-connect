@@ -121,10 +121,23 @@ const getAllLeaves = async (req, res) => {
   }
 };
 
+// leave list by user
+const getLeaveByUser = async (req, res) => {
+  try {
+    const leaves = await leaveModel.find({ user: req.user.id });
+    if (!leaves) return res.status(404).json({ error: "Leaves not found" });
+    res.status(200).json({ leaves });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error getting leaves" });
+  }
+};
+
 module.exports = {
   createLeave,
   updateLeave,
   deleteLeave,
   getLeaveById,
   getAllLeaves,
+  getLeaveByUser,
 };
