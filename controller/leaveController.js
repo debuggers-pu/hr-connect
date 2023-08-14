@@ -1,48 +1,15 @@
 const leaveModel = require("../model/leave");
+const userModel = require("../model/user");
 
-// Create leave
+// Create leave usng the logged in user
 const createLeave = async (req, res) => {
   try {
-    const { employeeName, reason, startDate, endDate } = req.body;
-    if (endDate < startDate) {
-      return res
-        .status(400)
-        .json({ error: "End date cannot be smaller than the start date" });
-    }
-    // Check if the employee already has a leave for the specified dates
-    const existingLeave = await leaveModel.findOne({
-      employeeName: employeeName,
-      startDate: { $lte: endDate },
-      endDate: { $gte: startDate },
-    });
-
-    if (existingLeave) {
-      return res
-        .status(400)
-        .json({ error: "Leave already exists for the specified dates" });
-    }
-
-    const leave = new leaveModel({
-      employeeName,
-      reason,
-      startDate,
-      endDate,
-      user: req.user.id,
-    });
-
-    const newLeave = await leave.save();
-
-    res.status(200).json({ message: "Leave created successfully", newLeave });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Error creating leave" });
-  }
-};
-// update leave
-const updateLeave = async (req, res) => {
-  try {
-    const { employeeName, reason, startDate, endDate } = req.body;
-    const leaveId = req.params.id;
+    const { reason, startDate, endDate } = req.body;
+    const user = req.user;
+    console.log(user);
+    const employeeName = req.user.name;
+    console.log(employeeName);
+    const userId = user.id;
 
     // Check if the end date is smaller than the start date
     if (endDate < startDate) {
@@ -52,18 +19,11 @@ const updateLeave = async (req, res) => {
     }
 
     // Check if the leave exists
-    const leave = await leaveModel.findById(leaveId);
-    if (!leave) {
-      return res.status(404).json({ error: "Leave not found" });
-    }
-
-    // Check if the updated dates conflict with existing leaves
     const existingLeave = await leaveModel.findOne({
       employeeName: employeeName,
       startDate: { $lte: endDate },
       endDate: { $gte: startDate },
     });
-    console.log(existingLeave);
 
     if (existingLeave) {
       return res
@@ -71,14 +31,66 @@ const updateLeave = async (req, res) => {
         .json({ error: "Leave already exists for the specified dates" });
     }
 
-    // Update leave details
-    leave.employeeName = employeeName;
-    leave.reason = reason;
-    leave.startDate = startDate;
-    leave.endDate = endDate;
+    // Create leave
+    const leave = new leaveModel({
+      userId,
+      employeeName,
+      reason,
+      startDate,
+      endDate,
+    });
 
-    const updatedLeave = await leave.save();
+    const newLeave = await leave.save();
 
+    res.status(201).json({ message: "Leave created successfully", newLeave });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Leave creation failed!" });
+  }
+};
+// update leave by id using the logged in user
+const updateLeave = async (req, res) => {
+  try {
+    const { reason, startDate, endDate } = req.body;
+    const user = req.user;
+    const employeeName = req.user.name;
+    const userId = user.id;
+
+    // Check if the end date is smaller than the start date
+    if (endDate < startDate) {
+      return res
+        .status(400)
+        .json({ error: "End date cannot be smaller than the start date" });
+    }
+
+    // Check if the leave exists
+    const existingLeave = await leaveModel.findOne({
+      employeeName: employeeName,
+      startDate: { $lte: endDate },
+      endDate: { $gte: startDate },
+    });
+
+    if (existingLeave) {
+      return res
+        .status(400)
+        .json({ error: "Leave already exists for the specified dates" });
+    }
+
+    // Update leave
+    const updatedLeave = await leaveModel.findByIdAndUpdate(
+      req.params.id,
+      {
+        userId,
+        employeeName,
+        reason,
+        startDate,
+        endDate,
+      },
+      { new: true }
+    );
+
+    if (!updatedLeave)
+      return res.status(404).json({ error: "Leave not found" });
     res
       .status(200)
       .json({ message: "Leave updated successfully", updatedLeave });
@@ -121,10 +133,10 @@ const getAllLeaves = async (req, res) => {
   }
 };
 
-// leave list by user
-const getLeaveByUser = async (req, res) => {
+// get a list of leaves by the logged in user
+const getLeavesByUser = async (req, res) => {
   try {
-    const leaves = await leaveModel.find({ user: req.user.id });
+    const leaves = await leaveModel.find({ userId: req.user.id });
     if (!leaves) return res.status(404).json({ error: "Leaves not found" });
     res.status(200).json({ leaves });
   } catch (error) {
@@ -133,11 +145,12 @@ const getLeaveByUser = async (req, res) => {
   }
 };
 
+
 module.exports = {
   createLeave,
   updateLeave,
   deleteLeave,
   getLeaveById,
   getAllLeaves,
-  getLeaveByUser,
+  getLeavesByUser,
 };

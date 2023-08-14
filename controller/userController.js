@@ -118,6 +118,7 @@ const loginUser = async (req, res) => {
         email: existingUser.email,
         id: existingUser._id,
         userType: existingUser.userType,
+        name: existingUser.fullName,
         isLoggedIn: true,
       },
       SECRET_JWT,
