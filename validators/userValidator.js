@@ -90,9 +90,19 @@ const validateResetPassword = [
   },
 ];
 
+const validateChangePassword = [
+  body("oldPassword").notEmpty().withMessage("Old password is required"),
+  body("newPassword").notEmpty().withMessage("New password is required"),
+
+  (req, res, next) => {
+    validateReq(req, res, next);
+  }
+];
+
 module.exports = {
   validateRegisterUser,
   validateLoginUser,
   validateResetPassword,
   validateUpdateUser,
+  validateChangePassword
 };

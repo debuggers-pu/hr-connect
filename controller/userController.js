@@ -55,7 +55,6 @@ const registerUser = async (req, res) => {
       location: location,
     });
 
-
     //generating token for registered user
     const token = jwt.sign({ email: email, id: newUser._id }, SECRET_JWT);
 
@@ -209,9 +208,12 @@ const resetPassword = async (req, res) => {
     return res.status(500).json({ error: "Reset password failed" });
   }
 };
+
+//update user profile
 const updateUserProfileById = async (req, res) => {
   try {
-    const { fullName, email, password, username, phoneNumber, location} = req.body;
+    const { fullName, email, password, username, phoneNumber, location } =
+      req.body;
     let avatarUrl = null;
 
     // Check if file was uploaded
@@ -252,6 +254,8 @@ const updateUserProfileById = async (req, res) => {
     res.status(500).json({ error: "Error updating user profile" });
   }
 };
+
+//delete user
 const deleteUser = async (req, res) => {
   try {
     const user = await userModel.findByIdAndDelete(req.user.id);
@@ -264,6 +268,8 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ error: "Error deleting user" });
   }
 };
+
+//get user by id
 const getUserById = async (req, res) => {
   try {
     const user = await userModel.findById(req.user.id);
@@ -276,6 +282,35 @@ const getUserById = async (req, res) => {
     res.status(500).json({ error: "Error while getting user" });
   }
 };
+
+// change password of user using old password
+const changePassword = async (req, res) => {
+  const userId = req.user.id;
+  const { oldPassword, newPassword } = req.body;
+  try {
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const matchPassword = await bcrypt.compare(oldPassword, user.password);
+
+    if (!matchPassword) {
+      return res.status(500).json({ error: "Invalid Credentials" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password changed successfully!" });
+  }
+  catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Error while changing password" });
+  }
+};
+
 module.exports = {
   registerUser,
   emailVerify,
@@ -285,4 +320,5 @@ module.exports = {
   updateUserProfileById,
   deleteUser,
   getUserById,
+  changePassword,
 };

@@ -10,12 +10,14 @@ const {
   updateUserProfileById,
   deleteUser,
   getUserById,
+  changePassword,
 } = require("../controller/userController");
 const {
   validateRegisterUser,
   validateLoginUser,
   validateResetPassword,
   validateUpdateUser,
+  validateChangePassword, 
 } = require("../validators/userValidator");
 const { isLoggedIn } = require("../middleware/auth");
 
@@ -40,5 +42,7 @@ userRoute.patch(
 );
 userRoute.delete("/delete-user", isLoggedIn, deleteUser);
 userRoute.get("/get-user-by-id", isLoggedIn, getUserById);
+userRoute.patch("/change-password/:id",isLoggedIn, changePassword);
+
 
 module.exports = userRoute;
