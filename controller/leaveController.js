@@ -6,9 +6,7 @@ const createLeave = async (req, res) => {
   try {
     const { reason, startDate, endDate } = req.body;
     const user = req.user;
-    console.log(user);
     const employeeName = req.user.name;
-    console.log(employeeName);
     const userId = user.id;
 
     // Check if the end date is smaller than the start date
