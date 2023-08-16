@@ -40,6 +40,12 @@ const createLeave = async (req, res) => {
 
     const newLeave = await leave.save();
 
+    sendAdminNotification(
+      userId,
+      "New Leave Request",
+      `New leave request from ${employeeName}`
+    );
+
     res.status(201).json({ message: "Leave created successfully", newLeave });
   } catch (error) {
     console.log(error);
@@ -143,6 +149,76 @@ const getLeavesByUser = async (req, res) => {
   }
 };
 
+sendAdminNotification = async (userId, title, message) => {
+  try {
+    const admin = await userModel.findOne({ userType: "admin", _id: userId });
+    if (!admin) return;
+    const notification = {
+      userId,
+      title,
+      message,
+    };
+    // if (!admin.notification) {
+    //   admin.notification = []; // Initialize admin.notifications as an array
+    // }
+
+    admin.notification.push(notification);
+    await admin.save();
+
+    console.log("Notification sent successfully");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getLeaveNotifications = async (req, res) => {
+  try {
+    const user = req.user;
+    const userId = user.id;
+    const admin = await userModel.findOne({ userType: "admin", _id: userId });
+    if (!admin) {
+      return res.status(404).json({ error: "Admin not found" });
+    }
+    const notifications = admin.notification;
+    if (!notifications) {
+      return res.status(404).json({ error: "Notifications not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Notifications fetched successfully", notifications });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Failed to get leave notifications" });
+  }
+};
+
+// remove notification from admin if leave is approved or rejected
+const removeNotification = async (req, res) => {
+  try {
+    const user = req.user;
+    const userId = user.id;
+    const admin = await userModel.findOne({ userType: "admin", _id: userId });
+    if (!admin) {
+      return res.status(404).json({ error: "Admin not found" });
+    }
+    const notificationId = req.params.id;
+    const notification = admin.notification.find(
+      (notification) => notification._id == notificationId
+    );
+    if (!notification) {
+      return res.status(404).json({ error: "Notification not found" });
+    }
+    admin.notification = admin.notification.filter(
+      (notification) => notification._id != notificationId
+    );
+    await admin.save();
+    res.status(200).json({ message: "Notification removed successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Failed to remove notification" });
+  }
+};
 
 module.exports = {
   createLeave,
@@ -151,4 +227,6 @@ module.exports = {
   getLeaveById,
   getAllLeaves,
   getLeavesByUser,
+  getLeaveNotifications,
+  removeNotification,
 };
