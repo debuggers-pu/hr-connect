@@ -304,10 +304,23 @@ const changePassword = async (req, res) => {
     await user.save();
 
     return res.status(200).json({ message: "Password changed successfully!" });
-  }
-  catch (error) {
+  } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Error while changing password" });
+  }
+};
+
+// get all users
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await userModel.find();
+    if (!users) {
+      return res.status(404).json({ error: "No users found" });
+    }
+    res.status(200).json({ users: users });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error while getting users" });
   }
 };
 
@@ -321,4 +334,5 @@ module.exports = {
   deleteUser,
   getUserById,
   changePassword,
+  getAllUsers,
 };
