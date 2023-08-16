@@ -20,7 +20,7 @@ const {
   validateUpdateUser,
   validateChangePassword,
 } = require("../validators/userValidator");
-const { isLoggedIn } = require("../middleware/auth");
+const { isLoggedIn, isAdmin } = require("../middleware/auth");
 
 const userRoute = express.Router();
 
@@ -49,6 +49,6 @@ userRoute.patch(
   validateChangePassword,
   changePassword
 );
-userRoute.get("/get-all-users", isLoggedIn, getAllUsers);
+userRoute.get("/get-all-users", isLoggedIn, isAdmin, getAllUsers);
 
 module.exports = userRoute;
