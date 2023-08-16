@@ -86,10 +86,88 @@ const updateLeaveStatus = async (req, res) => {
     if (!leave) {
       return res.status(404).json({ error: "Leave not found" });
     }
+    // send notification to user that his/her leave status has been updated
+    if (status === "approved" || status === "rejected") {
+      sendUserNotification(
+        leave.userId,
+        "Leave Status Updated",
+        `Your leave request has been ${status}`
+      );
+    }
     res.status(200).json({ message: "Leave status updated successfully" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error while updating leave status" });
   }
 };
-module.exports = { adminLogin, onlyAdmin, updateUserType, updateLeaveStatus };
+
+sendUserNotification = async (userId, title, message) => {
+  try {
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const notification = {
+      title: title,
+      message: message,
+    };
+    user.notification.push(notification);
+    await user.save();
+    console.log("Notification sent to user");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getLeaveNotificationsForUser = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const notifications = user.notification;
+    if (!notifications) {
+      return res.status(404).json({ error: "No notification found" });
+    }
+    res
+      .status(200)
+      .json({ message: "Notifications fetched successfully", notifications });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error while fetching notifications" });
+  }
+};
+
+// remove notification from user notification array
+const removeNotification = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const notification = user.notification.find(
+      (notification) => notification._id == req.params.id
+    );
+    if (!notification) {
+      return res.status(404).json({ error: "Notification not found" });
+    }
+    const notifications = user.notification;
+
+    const index = notifications.indexOf(notification);
+    notifications.splice(index, 1);
+    await user.save();
+    res.status(200).json({ message: "Notification removed successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error while removing notification" });
+  }
+};
+
+module.exports = {
+  adminLogin,
+  onlyAdmin,
+  updateUserType,
+  updateLeaveStatus,
+  getLeaveNotificationsForUser,
+  removeNotification,
+};
