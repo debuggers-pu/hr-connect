@@ -87,11 +87,9 @@ const updateLeaveStatus = async (req, res) => {
       return res.status(404).json({ error: "Leave not found" });
     }
     res.status(200).json({ message: "Leave status updated successfully" });
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error while updating leave status" });
   }
 };
-
 module.exports = { adminLogin, onlyAdmin, updateUserType, updateLeaveStatus };

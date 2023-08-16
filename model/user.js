@@ -2,6 +2,17 @@ const mongoose = require("mongoose");
 
 const { userRole } = require("../config/constant");
 
+const notifcationSchema = mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user",
+  },
+  title:{
+    type : String
+  },
+  message: String
+});
+
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -54,7 +65,10 @@ const userSchema = new mongoose.Schema(
     location: {
       type: String,
     },
-
+    notification: {
+      type: [notifcationSchema]
+    }
+    
   },
   {
     timestamps: true,
