@@ -12,6 +12,7 @@ const {
   getUserById,
   changePassword,
   getAllUsers,
+  getUserId,
 } = require("../controller/userController");
 const {
   validateRegisterUser,
@@ -50,5 +51,6 @@ userRoute.patch(
   changePassword
 );
 userRoute.get("/get-all-users", isLoggedIn, isAdmin, getAllUsers);
+userRoute.get("/getUserById/:id", isLoggedIn, isAdmin, getUserId);
 
 module.exports = userRoute;
