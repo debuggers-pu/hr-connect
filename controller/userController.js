@@ -283,7 +283,7 @@ const getUserById = async (req, res) => {
   }
 };
 
-// change password of user using old password
+// change password of user using old password to new password
 const changePassword = async (req, res) => {
   const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
