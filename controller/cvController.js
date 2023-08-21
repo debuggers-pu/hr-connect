@@ -6,7 +6,6 @@ const createCv = async (req, res) => {
     if (!name || !phoneNumber || !role) {
       return res.status(500).json({ error: "Please fill all the fields" });
     }
-
     // Check if file was uploaded
     let cvFile = null;
     if (req.file) {
@@ -20,7 +19,6 @@ const createCv = async (req, res) => {
       role: role,
       cv: url,
     });
-
     await cv.save();
     return res.status(200).json({ message: "CV created successfully", cv });
   } catch (error) {
