@@ -22,9 +22,16 @@ const attendanceType = Object.freeze({
   LEAVE: "leave",
 });
 
+const location = Object.freeze({
+  OFFICE: "office",
+  HOME: "home",
+  OTHER: "other",
+});
+
 module.exports = {
   userRole,
   status,
   leaveType,
   attendanceType,
+  location,
 };
