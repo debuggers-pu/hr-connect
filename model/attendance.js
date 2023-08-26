@@ -1,30 +1,26 @@
 const mongoose = require("mongoose");
-const { status, attendanceType } = require("../config/constant");
+const { location } = require("../config/constant");
 
 const attendanceSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     employeeName: {
       type: String,
       unique: true,
       required: true,
     },
-    attendanceType: {
-      type: String,
-      enum: Object.values(attendanceType),
-      default: "present",
-    },
     date: {
       type: Date,
       required: true,
+      default: Date.now,
     },
-    status: {
+    location: {
       type: String,
-      enum: Object.values(status),
-      default: "pending",
-    },
-    reason: {
-      type: String,
-      required: true,
+      enum: Object.values(location),
+      default: "office",
     },
   },
   {

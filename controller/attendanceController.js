@@ -15,19 +15,24 @@ const createAttendance = async (req, res) => {
           message: "Some error occurred while getting wifi connection.",
         });
       } else {
-        const collegeWifi = "404 NOT FOUND ERROR__2.4";
-        const connectedToCollegeWifi = currentConnections.find(
-          (connection) => connection.ssid === collegeWifi
+        const collegeWifiNames = [
+          "404 NOT FOUND ERROR__5",
+          "404 NOT FOUND ERROR__2.4",
+          "NTFiber-CEA0",
+          "suamn30_fpkhr",
+        ];
+
+        const connectedToCollegeWifi = currentConnections.find((connection) =>
+          collegeWifiNames.includes(connection.ssid)
         );
         if (connectedToCollegeWifi) {
-          const { employeeName, attendanceType, date, status, reason } =
-            req.body;
+          const { date, location } = req.body;
+          const user = req.user;
+          const employeeName = user.name;
           const attendance = new Attendance({
             employeeName,
-            attendanceType,
             date,
-            status,
-            reason,
+            location,
           });
 
           Attendance.findOne({
