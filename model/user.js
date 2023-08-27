@@ -7,10 +7,10 @@ const notifcationSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
   },
-  title:{
-    type : String
+  title: {
+    type: String,
   },
-  message: String
+  message: String,
 });
 
 const userSchema = new mongoose.Schema(
@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
     },
     username: {
       type: String,
-      unique: true,
+      // unique: true,
       min: 4,
     },
     email: {
@@ -61,14 +61,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       min: 8,
     },
-    
+
     location: {
       type: String,
     },
     notification: {
-      type: [notifcationSchema]
-    }
-    
+      type: [notifcationSchema],
+    },
   },
   {
     timestamps: true,
