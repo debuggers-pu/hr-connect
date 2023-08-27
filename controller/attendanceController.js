@@ -20,7 +20,8 @@ const createAttendance = async (req, res) => {
           "404 NOT FOUND ERROR__2.4",
           "NTFiber-CEA0",
           "suamn30_fpkhr",
-          "blacktech1_fpkhr_5g"
+          "blacktech1_fpkhr_5g",
+          "blacktech1_fpkhr_2.4",
         ];
 
         const connectedToCollegeWifi = currentConnections.find((connection) =>
