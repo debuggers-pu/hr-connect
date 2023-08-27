@@ -27,6 +27,11 @@ const createAttendance = async (req, res) => {
         const connectedToCollegeWifi = currentConnections.find((connection) =>
           collegeWifiNames.includes(connection.ssid)
         );
+        if (!connectedToCollegeWifi) {
+          return res.status(400).json({
+            error: "You are not connected to college wifi",
+          });
+        }
         if (connectedToCollegeWifi) {
           const { date, location } = req.body;
           const user = req.user;
@@ -80,6 +85,79 @@ const createAttendance = async (req, res) => {
   }
 };
 
+// clockoutAttendance
+const clockOutAttendance = async (req, res) => {
+  try {
+    const user = req.user;
+    const employeeName = user.name;
+    const currentDate = new Date();
+
+    const existingAttendance = await Attendance.findOne({
+      employeeName: employeeName,
+      date: {
+        $gte: new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth(),
+          currentDate.getDate()
+        ),
+      },
+    });
+
+    if (!existingAttendance) {
+      return res.status(400).json({
+        error:
+          "Attendance not found for today. You must create attendance first.",
+      });
+    }
+
+    if (existingAttendance.clockOutTime) {
+      return res.status(400).json({
+        error: "Attendance has already been clocked out for today.",
+      });
+    }
+
+    existingAttendance.clockOutTime = currentDate;
+    await existingAttendance.save();
+    console.log("Attendance clocked out successfully.", existingAttendance);
+    return res.json({
+      message: "Attendance clocked out successfully.",
+      data: existingAttendance,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Clock-out failed!" });
+  }
+};
+
+const schedule = require("node-schedule");
+const rule = new schedule.RecurrenceRule();
+rule.hour = 0;
+rule.minute = 0;
+const automaticClockOutJob = schedule.scheduleJob(rule, async () => {
+  try {
+    const currentDate = new Date();
+    const pastMidnight = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate()
+    );
+
+    const overdueAttendances = await Attendance.find({
+      clockOutTime: { $exists: false },
+      date: { $lt: pastMidnight },
+    });
+
+    for (const attendance of overdueAttendances) {
+      attendance.clockOutTime = pastMidnight;
+      await attendance.save();
+      console.log("Auto clock-out for:", attendance);
+    }
+  } catch (error) {
+    console.error("Automatic clock-out task failed:", error);
+  }
+});
+
 module.exports = {
   createAttendance,
+  clockOutAttendance,
 };
