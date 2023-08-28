@@ -12,7 +12,11 @@ app.use(cors());
 app.use(express.static("public"));
 
 const corsOption = {
-  origin: ["https://localhost:5173"],
+  origin: [
+    "https://localhost:5173",
+    "https://localhost:3000",
+    "https://localhost:3001",
+  ],
 };
 
 app.use((req, res, next) => {

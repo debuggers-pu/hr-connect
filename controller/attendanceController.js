@@ -130,32 +130,33 @@ const clockOutAttendance = async (req, res) => {
 };
 
 const schedule = require("node-schedule");
-const rule = new schedule.RecurrenceRule();
-rule.hour = 0;
-rule.minute = 0;
-const automaticClockOutJob = schedule.scheduleJob(rule, async () => {
-  try {
-    const currentDate = new Date();
-    const pastMidnight = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      currentDate.getDate()
-    );
+const automaticClockOutRule = new schedule.RecurrenceRule();
+automaticClockOutRule.hour = 0;
+automaticClockOutRule.minute = 0;
 
-    const overdueAttendances = await Attendance.find({
-      clockOutTime: { $exists: false },
-      date: { $lt: pastMidnight },
-    });
+const automaticClockOutJob = schedule.scheduleJob(
+  automaticClockOutRule,
+  async () => {
+    try {
+      const pastMidnight = new Date(); 
+      pastMidnight.setHours(0, 0, 0, 0); 
 
-    for (const attendance of overdueAttendances) {
-      attendance.clockOutTime = pastMidnight;
-      await attendance.save();
-      console.log("Auto clock-out for:", attendance);
+      const overdueAttendances = await Attendance.find({
+        clockOutTime: { $exists: false },
+        date: { $lt: pastMidnight },
+      });
+
+      for (const attendance of overdueAttendances) {
+        attendance.clockOutTime = pastMidnight;
+        await attendance.save();
+        console.log("Auto clock-out for:", attendance);
+      }
+    } catch (error) {
+      console.error("Automatic clock-out task failed:", error);
     }
-  } catch (error) {
-    console.error("Automatic clock-out task failed:", error);
   }
-});
+);
+
 
 // get all attendance
 
@@ -171,8 +172,26 @@ const getAllAttendance = async (req, res) => {
   }
 };
 
+// get all attendance by date
+
+const getAllAttendanceByDate = async (req, res) => {
+  try {
+    const attendance = await Attendance.find({
+      date: req.params.date,
+    });
+    res.send(attendance);
+  } catch (err) {
+    res.status(500).send({
+      message:
+        err.message || "Some error occurred while retrieving attendance.",
+    });
+  }
+};
+
+
 module.exports = {
   createAttendance,
   clockOutAttendance,
   getAllAttendance,
+  getAllAttendanceByDate,
 };
