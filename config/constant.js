@@ -28,10 +28,17 @@ const location = Object.freeze({
   OTHER: "other",
 });
 
+const eventTypes = Object.freeze({
+  EVERYONE: "everyone",
+  ADMIN: "admin",
+  USER: "user",
+});
+
 module.exports = {
   userRole,
   status,
   leaveType,
   attendanceType,
   location,
+  eventTypes,
 };
