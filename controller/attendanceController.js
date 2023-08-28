@@ -157,7 +157,22 @@ const automaticClockOutJob = schedule.scheduleJob(rule, async () => {
   }
 });
 
+// get all attendance
+
+const getAllAttendance = async (req, res) => {
+  try {
+    const attendance = await Attendance.find();
+    res.send(attendance);
+  } catch (err) {
+    res.status(500).send({
+      message:
+        err.message || "Some error occurred while retrieving attendance.",
+    });
+  }
+};
+
 module.exports = {
   createAttendance,
   clockOutAttendance,
+  getAllAttendance,
 };
