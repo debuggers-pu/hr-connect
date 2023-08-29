@@ -1,8 +1,8 @@
 const express = require("express");
 
 const {
-  createAttendance,
-  clockOutAttendance,
+  clockIn,
+  clockOut,
   getAllAttendance,
   getAllAttendanceByDate
 } = require("../controller/attendanceController");
@@ -11,8 +11,8 @@ const { isLoggedIn } = require("../middleware/auth");
 
 const attendanceRoute = express.Router();
 
-attendanceRoute.post("/createAttendance", isLoggedIn, createAttendance);
-attendanceRoute.patch("/clockOutAttendance", isLoggedIn, clockOutAttendance);
+attendanceRoute.post("/clockIn", isLoggedIn, clockIn);
+attendanceRoute.post("/clockOut", isLoggedIn, clockOut);
 attendanceRoute.get("/getAllAttendance", isLoggedIn, getAllAttendance);
 attendanceRoute.get("/getAllAttendanceByDate/:date", isLoggedIn, getAllAttendanceByDate);
 
