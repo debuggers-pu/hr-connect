@@ -12,10 +12,12 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
       unique: false,
     },
-    date: {
+    startTime: {
       type: Date,
       required: true,
-      default: Date.now,
+    },
+    endTime: {
+      type: Date,
     },
     location: {
       type: String,

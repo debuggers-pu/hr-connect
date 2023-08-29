@@ -1,9 +1,9 @@
 const Attendance = require("../model/attendance.js");
 const wifi = require("node-wifi");
+const cron = require("node-cron");
 
 // Create Attendance
-
-const createAttendance = async (req, res) => {
+const clockIn = async (req, res) => {
   try {
     wifi.init({
       iface: null,
@@ -22,6 +22,7 @@ const createAttendance = async (req, res) => {
           "suamn30_fpkhr",
           "blacktech1_fpkhr_5g",
           "blacktech1_fpkhr_2.4",
+          "BlackTech_5"
         ];
 
         const connectedToCollegeWifi = currentConnections.find((connection) =>
@@ -33,18 +34,24 @@ const createAttendance = async (req, res) => {
           });
         }
         if (connectedToCollegeWifi) {
-          const { date, location } = req.body;
+          const { startTime, location } = req.body;
           const user = req.user;
           const employeeName = user.name;
           const attendance = new Attendance({
             employeeName,
-            date,
+            startTime: new Date(),
             location,
           });
 
+          const attendanceDate = new Date(startTime);
+          attendanceDate.setHours(0, 0, 0, 0); // Set time to midnight
+
           Attendance.findOne({
             employeeName: employeeName,
-            date: date,
+            startTime: {
+              $gte: attendanceDate,
+              $lt: new Date(attendanceDate.getTime() + 24 * 60 * 60 * 1000), // Next day
+            },
           })
             .then((existingAttendance) => {
               if (existingAttendance) {
@@ -57,7 +64,7 @@ const createAttendance = async (req, res) => {
                 .save()
                 .then((data) => {
                   res.send({
-                    message: "Attendance created successfully",
+                    message: "Clock-in successful",
                     data,
                   });
                 })
@@ -65,7 +72,7 @@ const createAttendance = async (req, res) => {
                   res.status(500).send({
                     message:
                       err.message ||
-                      "Some error occurred while making the Attendance.",
+                      "Some error occurred while making the clock-in entry",
                   });
                 });
             })
@@ -81,81 +88,70 @@ const createAttendance = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Attendance failed!" });
+    return res.status(500).json({ error: "Clock-in failed!" });
   }
 };
 
+
+
 // clockoutAttendance
-const clockOutAttendance = async (req, res) => {
+const clockOut = async (req, res) => {
   try {
     const user = req.user;
     const employeeName = user.name;
-    const currentDate = new Date();
-
-    const existingAttendance = await Attendance.findOne({
+    const attendance = await Attendance.findOneAndUpdate({
       employeeName: employeeName,
-      date: {
-        $gte: new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          currentDate.getDate()
-        ),
-      },
-    });
-
-    if (!existingAttendance) {
+      endTime: {$exists: false}
+    },
+    {
+      endTime: new Date()
+    },
+    {
+      new: true
+    }
+    );
+    if (!attendance) {
       return res.status(400).json({
-        error:
-          "Attendance not found for today. You must create attendance first.",
+        error: "Attendance not found",
       });
     }
-
-    if (existingAttendance.clockOutTime) {
-      return res.status(400).json({
-        error: "Attendance has already been clocked out for today.",
-      });
-    }
-
-    existingAttendance.clockOutTime = currentDate;
-    await existingAttendance.save();
-    console.log("Attendance clocked out successfully.", existingAttendance);
-    return res.json({
-      message: "Attendance clocked out successfully.",
-      data: existingAttendance,
+    attendance.endTime = new Date();
+    await attendance.save();
+    res.send({
+      message: "Clock-out successful",
+      attendance,
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Clock-out failed!" });
+    return res.status(500).json({ error: "Clock-out failed!" }); 
   }
 };
 
-const schedule = require("node-schedule");
-const automaticClockOutRule = new schedule.RecurrenceRule();
-automaticClockOutRule.hour = 0;
-automaticClockOutRule.minute = 0;
 
-const automaticClockOutJob = schedule.scheduleJob(
-  automaticClockOutRule,
-  async () => {
-    try {
-      const pastMidnight = new Date(); 
-      pastMidnight.setHours(0, 0, 0, 0); 
-
-      const overdueAttendances = await Attendance.find({
-        clockOutTime: { $exists: false },
-        date: { $lt: pastMidnight },
-      });
-
-      for (const attendance of overdueAttendances) {
-        attendance.clockOutTime = pastMidnight;
-        await attendance.save();
-        console.log("Auto clock-out for:", attendance);
-      }
-    } catch (error) {
-      console.error("Automatic clock-out task failed:", error);
+// autoClockOut after 12 am
+const autoClockOut = async () => {
+  try{
+    const currentDate = new Date();
+    // set time to midnight
+    currentDate.setHours(0, 0, 0, 0);
+    
+    const unclosedAttendances = await Attendance.find({
+      endTime: { $exists: false },
+      startTime: { $lt: currentDate },
+    });
+    for (const attendance of unclosedAttendances) {
+      attendance.endTime = currentDate;
+      await attendance.save();
     }
+
   }
-);
+  catch(error){
+    console.log("error in autoClockOut", error);
+
+  }
+};
+
+cron.schedule("0 0 0 * * *", autoClockOut);
 
 
 // get all attendance
@@ -172,12 +168,19 @@ const getAllAttendance = async (req, res) => {
   }
 };
 
-// get all attendance by date
+// get all attendance by start date and end date 
 
 const getAllAttendanceByDate = async (req, res) => {
   try {
+    const { date } = req.params;
+    const startDate = new Date(date);
+    const endDate = new Date(date);
+    endDate.setDate(endDate.getDate() + 1);
     const attendance = await Attendance.find({
-      date: req.params.date,
+      startTime: {
+        $gte: startDate,
+        $lt: endDate,
+      },
     });
     res.send(attendance);
   } catch (err) {
@@ -190,8 +193,8 @@ const getAllAttendanceByDate = async (req, res) => {
 
 
 module.exports = {
-  createAttendance,
-  clockOutAttendance,
+  clockIn,
+  clockOut,
   getAllAttendance,
   getAllAttendanceByDate,
 };
