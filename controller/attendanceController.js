@@ -22,7 +22,7 @@ const clockIn = async (req, res) => {
           "suamn30_fpkhr",
           "blacktech1_fpkhr_5g",
           "blacktech1_fpkhr_2.4",
-          "BlackTech_5"
+          "BlackTech_5",
         ];
 
         const connectedToCollegeWifi = currentConnections.find((connection) =>
@@ -34,24 +34,25 @@ const clockIn = async (req, res) => {
           });
         }
         if (connectedToCollegeWifi) {
-          const { startTime, location } = req.body;
+          const { date, startTime, location } = req.body;
           const user = req.user;
           const employeeName = user.name;
-          const attendance = new Attendance({
-            employeeName,
-            startTime: new Date(),
-            location,
+          // convert startTime to HH:MM format
+          const time = new Date().toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "numeric",
+            hour12: true,
           });
 
-          const attendanceDate = new Date(startTime);
-          attendanceDate.setHours(0, 0, 0, 0); // Set time to midnight
-
+          const attendance = new Attendance({
+            employeeName,
+            date,
+            startTime: time,
+            location,
+          });
           Attendance.findOne({
             employeeName: employeeName,
-            startTime: {
-              $gte: attendanceDate,
-              $lt: new Date(attendanceDate.getTime() + 24 * 60 * 60 * 1000), // Next day
-            },
+            date,
           })
             .then((existingAttendance) => {
               if (existingAttendance) {
@@ -92,49 +93,50 @@ const clockIn = async (req, res) => {
   }
 };
 
-
-
 // clockoutAttendance
 const clockOut = async (req, res) => {
   try {
     const user = req.user;
     const employeeName = user.name;
-    const attendance = await Attendance.findOneAndUpdate({
-      employeeName: employeeName,
-      endTime: {$exists: false}
-    },
-    {
-      endTime: new Date()
-    },
-    {
-      new: true
-    }
-    );
-    if (!attendance) {
+    const today = new Date().toISOString().split("T")[0];
+    const existingAttendance = await Attendance.findOne({
+      employeeName,
+      date: today,
+      endTime: { $exists: false },
+    });
+    if (!existingAttendance) {
       return res.status(400).json({
-        error: "Attendance not found",
+        error: "Already clocked out for the day",
       });
     }
-    attendance.endTime = new Date();
-    await attendance.save();
+    existingAttendance.endTime = new Date();
+    // save time in HH:MM format
+   const time = new Date().toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
+    existingAttendance.endTime = time;
+    await existingAttendance.save();
+    
     res.send({
       message: "Clock-out successful",
-      attendance,
+      existingAttendance,
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ error: "Clock-out failed!" }); 
+    return res.status(500).json({ error: "Clock-out failed!" });
   }
 };
 
 
 // autoClockOut after 12 am
 const autoClockOut = async () => {
-  try{
+  try {
     const currentDate = new Date();
     // set time to midnight
     currentDate.setHours(0, 0, 0, 0);
-    
+
     const unclosedAttendances = await Attendance.find({
       endTime: { $exists: false },
       startTime: { $lt: currentDate },
@@ -143,16 +145,12 @@ const autoClockOut = async () => {
       attendance.endTime = currentDate;
       await attendance.save();
     }
-
-  }
-  catch(error){
+  } catch (error) {
     console.log("error in autoClockOut", error);
-
   }
 };
 
 cron.schedule("0 0 0 * * *", autoClockOut);
-
 
 // get all attendance
 
@@ -168,28 +166,35 @@ const getAllAttendance = async (req, res) => {
   }
 };
 
-// get all attendance by start date and end date 
-
+// get all attendance by start time and end time for specific date
 const getAllAttendanceByDate = async (req, res) => {
   try {
     const { date } = req.params;
-    const startDate = new Date(date);
-    const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() + 1);
-    const attendance = await Attendance.find({
-      startTime: {
-        $gte: startDate,
-        $lt: endDate,
-      },
+
+    const attendanceRecords = await Attendance.find({ date }).populate(
+      "userId",
+      "name"
+    ).exec();
+    const clockedInUsers = attendanceRecords.filter(
+      (record) => record.startTime && !record.endTime
+    );
+    const clockedOutUsers = attendanceRecords.filter(
+      (record) => record.endTime
+    );
+
+    res.send({
+      date,
+      clockedInUsers,
+      clockedOutUsers,
     });
-    res.send(attendance);
-  } catch (err) {
-    res.status(500).send({
-      message:
-        err.message || "Some error occurred while retrieving attendance.",
-    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ error: "Error while retrieving attendance records." });
   }
 };
+
 
 
 module.exports = {

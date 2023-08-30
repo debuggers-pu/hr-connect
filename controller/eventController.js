@@ -44,6 +44,38 @@ function formatDateTime(inputDateTime) {
   return `${month}/${day}/${year} ${time}`;
 }
 
+// update event
+const updateEvent = async (req, res) => {
+  try {
+    const { datetime, eventType, description } = req.body;
+    const event = await Event.findByIdAndUpdate(
+      req.params.id,
+      {
+      datetime: formatDateTime(datetime),
+      eventType,
+      description,
+    },
+    {
+      new: true,
+    });
+    
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.status(200).json({
+      message: "Event updated successfully",
+      event: event,
+    });
+  
+  }
+   catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error while updating event" });
+  }
+};
 module.exports = {
   createEvent,
+  updateEvent
 };
