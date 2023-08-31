@@ -19,7 +19,7 @@ const clockIn = async (req, res) => {
           "404 NOT FOUND ERROR__5",
           "404 NOT FOUND ERROR__2.4",
           "NTFiber-CEA0",
-          "suamn30_fpkhr",
+          "suman30_fpkhr",
           "blacktech1_fpkhr_5g",
           "blacktech1_fpkhr_2.4",
           "BlackTech_5",
@@ -111,14 +111,14 @@ const clockOut = async (req, res) => {
     }
     existingAttendance.endTime = new Date();
     // save time in HH:MM format
-   const time = new Date().toLocaleTimeString("en-US", {
+    const time = new Date().toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "numeric",
       hour12: true,
     });
     existingAttendance.endTime = time;
     await existingAttendance.save();
-    
+
     res.send({
       message: "Clock-out successful",
       existingAttendance,
@@ -128,7 +128,6 @@ const clockOut = async (req, res) => {
     return res.status(500).json({ error: "Clock-out failed!" });
   }
 };
-
 
 // autoClockOut after 12 am
 const autoClockOut = async () => {
@@ -171,10 +170,9 @@ const getAllAttendanceByDate = async (req, res) => {
   try {
     const { date } = req.params;
 
-    const attendanceRecords = await Attendance.find({ date }).populate(
-      "userId",
-      "name"
-    ).exec();
+    const attendanceRecords = await Attendance.find({ date })
+      .populate("userId", "name")
+      .exec();
     const clockedInUsers = attendanceRecords.filter(
       (record) => record.startTime && !record.endTime
     );
@@ -194,8 +192,6 @@ const getAllAttendanceByDate = async (req, res) => {
       .json({ error: "Error while retrieving attendance records." });
   }
 };
-
-
 
 module.exports = {
   clockIn,
