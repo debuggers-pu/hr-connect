@@ -19,7 +19,7 @@ const clockIn = async (req, res) => {
           "404 NOT FOUND ERROR__5",
           "404 NOT FOUND ERROR__2.4",
           "NTFiber-CEA0",
-          "suman30_fpkhr",
+          "suamn30_fpkhr",
           "blacktech1_fpkhr_5g",
           "blacktech1_fpkhr_2.4",
           "BlackTech_5",
@@ -37,7 +37,21 @@ const clockIn = async (req, res) => {
           const { date, startTime, location } = req.body;
           const user = req.user;
           const employeeName = user.name;
-          // convert startTime to HH:MM format
+          const currentDate = new Date();
+          const inputDate = new Date(date);
+
+          const timeDiff = inputDate.getTime() - currentDate.getTime();
+          const daysDiff = timeDiff / (1000 * 3600 * 24);
+
+          if (daysDiff < 0) {
+            return res.status(400).json({
+              error: "You cannot clock in for a past date",
+            });
+          } else if (daysDiff > 1) {
+            return res.status(400).json({
+              error: "You cannot clock in for a date more than 1 day ahead",
+            });
+          }
           const time = new Date().toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "numeric",
@@ -96,38 +110,83 @@ const clockIn = async (req, res) => {
 // clockoutAttendance
 const clockOut = async (req, res) => {
   try {
-    const user = req.user;
-    const employeeName = user.name;
-    const today = new Date().toISOString().split("T")[0];
-    const existingAttendance = await Attendance.findOne({
-      employeeName,
-      date: today,
-      endTime: { $exists: false },
+    wifi.init({
+      iface: null,
     });
-    if (!existingAttendance) {
-      return res.status(400).json({
-        error: "Already clocked out for the day",
-      });
-    }
-    existingAttendance.endTime = new Date();
-    // save time in HH:MM format
-    const time = new Date().toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-    });
-    existingAttendance.endTime = time;
-    await existingAttendance.save();
+    wifi.getCurrentConnections((err, currentConnections) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send({
+          message: "Some error occurred while getting wifi connection.",
+        });
+      }
 
-    res.send({
-      message: "Clock-out successful",
-      existingAttendance,
+      const collegeWifiNames = [
+        "404 NOT FOUND ERROR__5",
+        "404 NOT FOUND ERROR__2.4",
+        "NTFiber-CEA0",
+        "suamn30_fpkhr",
+        "blacktech1_fpkhr_5g",
+        "blacktech1_fpkhr_2.4",
+        "BlackTech_5",
+      ];
+
+      const connectedToCollegeWifi = currentConnections.find((connection) =>
+        collegeWifiNames.includes(connection.ssid)
+      );
+
+      if (!connectedToCollegeWifi) {
+        return res.status(400).json({
+          error: "You are not connected to college wifi",
+        });
+      }
+
+      if (connectedToCollegeWifi) {
+        const user = req.user;
+        const employeeName = user.name;
+
+        const endTime = new Date().toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        });
+
+        Attendance.findOneAndUpdate(
+          {
+            employeeName: employeeName,
+            endTime: null,
+          },
+          { $set: { endTime: endTime } },
+          { new: true }
+        )
+          .then((data) => {
+            if (!data) {
+              return res.status(400).json({
+                error:
+                  "No clock-in record found for today or clock-out already recorded",
+              });
+            }
+            res.send({
+              message: "Clock-out successful",
+              data,
+            });
+          })
+          .catch((err) => {
+            res.status(500).send({
+              message:
+                err.message ||
+                "Some error occurred while updating the clock-out entry",
+            });
+          });
+      }
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Clock-out failed!" });
   }
 };
+
+
 
 // autoClockOut after 12 am
 const autoClockOut = async () => {
@@ -170,9 +229,7 @@ const getAllAttendanceByDate = async (req, res) => {
   try {
     const { date } = req.params;
 
-    const attendanceRecords = await Attendance.find({ date })
-      .populate("userId", "name")
-      .exec();
+    const attendanceRecords = await Attendance.find({ date });
     const clockedInUsers = attendanceRecords.filter(
       (record) => record.startTime && !record.endTime
     );
@@ -192,6 +249,8 @@ const getAllAttendanceByDate = async (req, res) => {
       .json({ error: "Error while retrieving attendance records." });
   }
 };
+
+
 
 module.exports = {
   clockIn,
