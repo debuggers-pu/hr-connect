@@ -4,7 +4,7 @@ const userModel = require("../model/user");
 // Create leave usng the logged in user
 const createLeave = async (req, res) => {
   try {
-    const { reason, startDate, endDate } = req.body;
+    const { reason, startDate, endDate , leaveType} = req.body;
     const user = req.user;
     const employeeName = req.user.name;
     const userId = user.id;
@@ -36,6 +36,7 @@ const createLeave = async (req, res) => {
       reason,
       startDate,
       endDate,
+      leaveType,
     });
 
     const newLeave = await leave.save();
@@ -55,7 +56,7 @@ const createLeave = async (req, res) => {
 // update leave by id using the logged in user
 const updateLeave = async (req, res) => {
   try {
-    const { reason, startDate, endDate } = req.body;
+    const { reason, startDate, endDate, leaveType } = req.body;
     const user = req.user;
     const employeeName = req.user.name;
     const userId = user.id;
@@ -89,6 +90,7 @@ const updateLeave = async (req, res) => {
         reason,
         startDate,
         endDate,
+        leaveType,
       },
       { new: true }
     );
