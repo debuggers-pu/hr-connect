@@ -1,11 +1,18 @@
 const Event = require("../model/events.js");
+const User = require("../model/user.js");
 
 // Create Event
 
 const createEvent = async (req, res) => {
   try {
     const { datetime, eventType, description } = req.body;
+    if (eventType !== "public" && eventType !== "private") {
+      return res.status(400).json({
+        error: "Invalid eventType. It must be 'public' or 'private'.",
+      });
+    }
     const event = new Event({
+      user: req.user.id,
       datetime: formatDateTime(datetime),
       eventType,
       description,
@@ -22,6 +29,14 @@ const createEvent = async (req, res) => {
       });
     }
     await event.save();
+    // push to all users if it is public event
+    if (eventType === "public") {
+      const users = await User.find();
+      users.forEach(async (user) => {
+        user.events.push(event);
+        await user.save();
+      });
+    }
     res.send({
       message: "Event created successfully",
       event,
@@ -44,38 +59,74 @@ function formatDateTime(inputDateTime) {
   return `${month}/${day}/${year} ${time}`;
 }
 
-// update event
+// update event according to event type private, public
+
 const updateEvent = async (req, res) => {
   try {
     const { datetime, eventType, description } = req.body;
-    const event = await Event.findByIdAndUpdate(
-      req.params.id,
-      {
-      datetime: formatDateTime(datetime),
-      eventType,
-      description,
-    },
-    {
-      new: true,
-    });
-    
+    const eventId = req.params.id;
+    const userId = req.user.id;
+    const event = await Event.findById(eventId);
 
     if (!event) {
-      return res.status(404).json({ error: "Event not found" });
+      return res.status(400).json({
+        error: "Event does not exist",
+      });
     }
 
-    res.status(200).json({
+    // Check if the user has permission to update the event
+    if (!event.user || event.user.toString() !== userId) {
+      return res.status(403).json({
+        error: "You do not have permission to update this event",
+      });
+    }
+
+    event.datetime = formatDateTime(datetime);
+    event.eventType = eventType;
+    event.description = description;
+    await event.save();
+
+    res.send({
       message: "Event updated successfully",
-      event: event,
+      event,
     });
-  
-  }
-   catch (error) {
+  } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Error while updating event" });
+    return res.status(500).json({ error: "Event failed!" });
   }
 };
+
+// get all events according to event type private, public
+
+const getAllEvents = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const event = req.params.id;
+    // if it is public event push to all users 
+    
+    if (event === "public") {
+      const publicEvents = await Event.find({ eventType: "public" });
+      return res.send({
+        message: "Public Events",
+        publicEvents,
+      });
+    }
+    const privateEvents = await Event.find({
+      eventType: "private",
+      user: userId,
+    });
+    res.send({
+      message: "Private Events",
+      privateEvents,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Event failed!" });
+  }
+};
+
 module.exports = {
   createEvent,
-  updateEvent
+  updateEvent,
+  getAllEvents,
 };

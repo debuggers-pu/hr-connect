@@ -29,9 +29,8 @@ const location = Object.freeze({
 });
 
 const eventTypes = Object.freeze({
-  EVERYONE: "everyone",
-  ADMIN: "admin",
-  USER: "user",
+  PRIVATE: "private",
+  PUBLIC: "public",
 });
 
 module.exports = {

@@ -3,6 +3,10 @@ const { eventTypes } = require("../config/constant");
 
 const eventSchema = new mongoose.Schema(
   {
+    user:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     datetime: {
       type: Date,
       required: true,

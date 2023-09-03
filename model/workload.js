@@ -1,30 +1,33 @@
 const mongoose = require("mongoose");
 
-// work load schema for each employee in college for course and semester
+/// workload calculate from attendance clock in and clock out
 
-const workLoadSchema = new mongoose.Schema(
-  {
-    course: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "course",
-    },
-    semester: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "semester",
-    },
-    employee: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "employee",
-    },
-    workload: {
-      type: Number,
-      default: 0,
-    },
+const WorkloadSchema = new mongoose.Schema({
+  employeeName: {
+    type: String,
+    required: true,
   },
-  {
-    timestamps: true,
-    id: true,
-  }
-);
+  date: {
+    type: String,
+    required: true,
+  },
+  startTime: {
+    type: String,
+    required: true,
+  },
+  endTime: {
+    type: String,
+  },
+  location: {
+    type: String,
+    required: true,
+  },
+  workload: {
+    type: String,
+  },
+},{
+  timestamps: true,
+});
 
-module.exports = mongoose.model("workload", workLoadSchema);
+
+const Workload = mongoose.model("Workload", WorkloadSchema);
