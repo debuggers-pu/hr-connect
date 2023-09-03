@@ -23,6 +23,7 @@ const clockIn = async (req, res) => {
           "blacktech1_fpkhr_5g",
           "blacktech1_fpkhr_2.4",
           "BlackTech_5",
+          "IgniteNet1-1"
         ];
 
         const connectedToCollegeWifi = currentConnections.find((connection) =>
@@ -129,6 +130,7 @@ const clockOut = async (req, res) => {
         "blacktech1_fpkhr_5g",
         "blacktech1_fpkhr_2.4",
         "BlackTech_5",
+        "IgniteNet1-1"
       ];
 
       const connectedToCollegeWifi = currentConnections.find((connection) =>
