@@ -1,6 +1,7 @@
 const Attendance = require("../model/attendance.js");
 const wifi = require("node-wifi");
 const cron = require("node-cron");
+const moment = require("moment-timezone");
 
 // Create Attendance
 const clockIn = async (req, res) => {
@@ -23,7 +24,6 @@ const clockIn = async (req, res) => {
           "blacktech1_fpkhr_5g",
           "blacktech1_fpkhr_2.4",
           "BlackTech_5",
-          "IgniteNet1-1"
         ];
 
         const connectedToCollegeWifi = currentConnections.find((connection) =>
@@ -38,26 +38,24 @@ const clockIn = async (req, res) => {
           const { date, startTime, location } = req.body;
           const user = req.user;
           const employeeName = user.name;
-          const currentDate = new Date();
-          const inputDate = new Date(date);
+          const currentDate = moment().tz("Asia/Kathmandu").format("YYYY-MM-DD");
+          const inputDate = moment(date).format("YYYY-MM-DD");
 
-          const timeDiff = inputDate.getTime() - currentDate.getTime();
-          const daysDiff = timeDiff / (1000 * 3600 * 24);
+          const timeDiff = moment(currentDate).diff(moment(inputDate), "days");
+          const daysDiff = parseInt(timeDiff);
 
+          // cannot clock-in for future dates
           if (daysDiff < 0) {
             return res.status(400).json({
-              error: "You cannot clock in for a past date",
+              error: "Cannot clock-in for future dates",
             });
-          } else if (daysDiff > 1) {
+          }else if (daysDiff > 0) {
             return res.status(400).json({
-              error: "You cannot clock in for a date more than 1 day ahead",
+              error: "Cannot clock-in for past dates",
             });
           }
-          const time = new Date().toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "numeric",
-            hour12: true,
-          });
+
+          const time = moment().tz("Asia/Kathmandu").format("hh:mm A");
 
           const attendance = new Attendance({
             employeeName,
@@ -130,7 +128,6 @@ const clockOut = async (req, res) => {
         "blacktech1_fpkhr_5g",
         "blacktech1_fpkhr_2.4",
         "BlackTech_5",
-        "IgniteNet1-1"
       ];
 
       const connectedToCollegeWifi = currentConnections.find((connection) =>
@@ -147,11 +144,7 @@ const clockOut = async (req, res) => {
         const user = req.user;
         const employeeName = user.name;
 
-        const endTime = new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "numeric",
-          hour12: true,
-        });
+        const endTime = moment().tz("Asia/Kathmandu").format("hh:mm A");
 
         Attendance.findOneAndUpdate(
           {
