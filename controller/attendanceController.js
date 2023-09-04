@@ -246,10 +246,56 @@ const getAllAttendanceByDate = async (req, res) => {
 };
 
 
+// get total workload of employee according to clock in and clock out time and calculate total workload of employee in hours
+const getWorkload = async (req, res) => {
+  try {
+    const { date } = req.params;
+    const attendanceRecords = await Attendance.find({ date });
+    const clockedInUsers = attendanceRecords.filter(
+      (record) => record.startTime && !record.endTime
+    );
+    const clockedOutUsers = attendanceRecords.filter(
+      (record) => record.endTime
+    );
+
+    const workload = clockedInUsers.map((clockedInUser) => {
+      const clockedOutUser = clockedOutUsers.find(
+        (clockedOutUser) =>
+          clockedOutUser.employeeName === clockedInUser.employeeName
+      );
+      const startTime = moment(clockedInUser.startTime, "hh:mm A");
+      const endTime = moment(clockedOutUser.endTime, "hh:mm A");
+      const duration = moment.duration(endTime.diff(startTime));
+      const hours = parseInt(duration.asHours());
+      const minutes = parseInt(duration.asMinutes()) % 60;
+      const workload = `${hours} hours ${minutes} minutes`;
+      return {
+        message: "Workload for the specified date",
+        employeeName: clockedInUser.employeeName,
+        startTime: clockedInUser.startTime,
+        endTime: clockedOutUser.endTime,
+        workload,
+      };
+    });
+
+    res.send({
+      message: "Workload for the specified date",
+      date,
+      workload,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ error: "Error while retrieving attendance records." });
+  }
+};
+
 
 module.exports = {
   clockIn,
   clockOut,
   getAllAttendance,
   getAllAttendanceByDate,
+  getWorkload,
 };
