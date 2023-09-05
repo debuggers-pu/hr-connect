@@ -38,7 +38,9 @@ const clockIn = async (req, res) => {
           const { date, startTime, location } = req.body;
           const user = req.user;
           const employeeName = user.name;
-          const currentDate = moment().tz("Asia/Kathmandu").format("YYYY-MM-DD");
+          const currentDate = moment()
+            .tz("Asia/Kathmandu")
+            .format("YYYY-MM-DD");
           const inputDate = moment(date).format("YYYY-MM-DD");
 
           const timeDiff = moment(currentDate).diff(moment(inputDate), "days");
@@ -49,7 +51,7 @@ const clockIn = async (req, res) => {
             return res.status(400).json({
               error: "Cannot clock-in for future dates",
             });
-          }else if (daysDiff > 0) {
+          } else if (daysDiff > 0) {
             return res.status(400).json({
               error: "Cannot clock-in for past dates",
             });
@@ -181,8 +183,6 @@ const clockOut = async (req, res) => {
   }
 };
 
-
-
 // autoClockOut after 12 am
 const autoClockOut = async () => {
   try {
@@ -245,38 +245,32 @@ const getAllAttendanceByDate = async (req, res) => {
   }
 };
 
-
-// get total workload of employee according to clock in and clock out time and calculate total workload of employee in hours
+// get total workload of employee a
 const getWorkload = async (req, res) => {
   try {
     const { date } = req.params;
     const attendanceRecords = await Attendance.find({ date });
+    if (attendanceRecords.length === 0) {
+      return res.status(400).json({
+        message: "No attendance record found for the specified date",
+      });
+    }
     const clockedInUsers = attendanceRecords.filter(
-      (record) => record.startTime && !record.endTime
+      (record) => record.startTime
     );
     const clockedOutUsers = attendanceRecords.filter(
       (record) => record.endTime
     );
 
-    const workload = clockedInUsers.map((clockedInUser) => {
-      const clockedOutUser = clockedOutUsers.find(
-        (clockedOutUser) =>
-          clockedOutUser.employeeName === clockedInUser.employeeName
-      );
-      const startTime = moment(clockedInUser.startTime, "hh:mm A");
-      const endTime = moment(clockedOutUser.endTime, "hh:mm A");
+    // calculate total workload of employee in hours
+    const workload = clockedInUsers.reduce((acc, record) => {
+      const startTime = moment(record.startTime, "hh:mm A");
+      const endTime = moment(record.endTime, "hh:mm A");
       const duration = moment.duration(endTime.diff(startTime));
-      const hours = parseInt(duration.asHours());
-      const minutes = parseInt(duration.asMinutes()) % 60;
-      const workload = `${hours} hours ${minutes} minutes`;
-      return {
-        message: "Workload for the specified date",
-        employeeName: clockedInUser.employeeName,
-        startTime: clockedInUser.startTime,
-        endTime: clockedOutUser.endTime,
-        workload,
-      };
-    });
+      const hours = duration.asHours();
+      return acc + hours;
+    }, 0);
+
 
     res.send({
       message: "Workload for the specified date",
@@ -291,6 +285,36 @@ const getWorkload = async (req, res) => {
   }
 };
 
+// get workload of single employee
+const getWorkloadOfSingleEmployee = async (req, res) => {
+  try {
+    const { date, employeeName } = req.params;
+
+    const attendanceRecords = await Attendance.find({ date, employeeName });
+
+    const totalWorkloadHours = attendanceRecords.reduce((acc, record) => {
+      if (record.startTime && record.endTime) {
+        const startTime = moment(record.startTime, "hh:mm A");
+        const endTime = moment(record.endTime, "hh:mm A");
+        const duration = moment.duration(endTime.diff(startTime));
+        const hours = duration.asHours();
+        return hours;
+      }
+    }, 0);
+
+    res.send({
+      message: "Workload for the specified user and date",
+      date,
+      employeeName,
+      totalWorkloadHours,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: "Error while retrieving attendance records." });
+  }
+};
 
 module.exports = {
   clockIn,
@@ -298,4 +322,5 @@ module.exports = {
   getAllAttendance,
   getAllAttendanceByDate,
   getWorkload,
+  getWorkloadOfSingleEmployee,
 };
