@@ -22,6 +22,10 @@ const eventSchema = new mongoose.Schema(
       required: true,
       unique: false,
     },
+    allDay:{
+      type: Boolean,
+      required:false,
+    }
   },
   {
     timestamps: true,

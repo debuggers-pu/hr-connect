@@ -5,7 +5,7 @@ const User = require("../model/user.js");
 
 const createEvent = async (req, res) => {
   try {
-    const { datetime, eventType, description } = req.body;
+    const { datetime, eventType, description, allDay} = req.body;
     if (eventType !== "public" && eventType !== "private") {
       return res.status(400).json({
         error: "Invalid eventType. It must be 'public' or 'private'.",
@@ -16,6 +16,7 @@ const createEvent = async (req, res) => {
       datetime: formatDateTime(datetime),
       eventType,
       description,
+      allDay
     });
     // already exists
     const existingEvent = await Event.findOne({
