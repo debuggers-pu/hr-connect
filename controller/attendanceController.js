@@ -38,6 +38,7 @@ const clockIn = async (req, res) => {
           const { date, startTime, location } = req.body;
           const user = req.user;
           const employeeName = user.name;
+          const userId = user.id;
           const currentDate = moment()
             .tz("Asia/Kathmandu")
             .format("YYYY-MM-DD");
@@ -64,6 +65,7 @@ const clockIn = async (req, res) => {
             date,
             startTime: time,
             location,
+            userId,
           });
           Attendance.findOne({
             employeeName: employeeName,
@@ -271,7 +273,6 @@ const getWorkload = async (req, res) => {
       return acc + hours;
     }, 0);
 
-
     res.send({
       message: "Workload for the specified date",
       date,
@@ -288,11 +289,11 @@ const getWorkload = async (req, res) => {
 // get workload of single employee
 const getWorkloadOfSingleEmployee = async (req, res) => {
   try {
-    const { date, employeeName } = req.params;
+    const { date, userId } = req.params;
 
-    const attendanceRecords = await Attendance.find({ date, employeeName });
+    const attendanceRecords = await Attendance.find({ date, userId });
 
-    const totalWorkloadHours = attendanceRecords.reduce((acc, record) => {
+    const totalWorkloadHours = attendanceRecords.reduce((acc,record) => {
       if (record.startTime && record.endTime) {
         const startTime = moment(record.startTime, "hh:mm A");
         const endTime = moment(record.endTime, "hh:mm A");
@@ -303,9 +304,9 @@ const getWorkloadOfSingleEmployee = async (req, res) => {
     }, 0);
 
     res.send({
-      message: "Workload for the specified user and date",
+      message: "Workload for the specified employee",
       date,
-      employeeName,
+      userId,
       totalWorkloadHours,
     });
   } catch (error) {

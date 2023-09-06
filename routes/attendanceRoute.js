@@ -19,7 +19,7 @@ attendanceRoute.get("/getAllAttendance", isLoggedIn, getAllAttendance);
 attendanceRoute.get("/getAllAttendanceByDate/:date", isLoggedIn, getAllAttendanceByDate);
 attendanceRoute.get("/getWorkload/:date", isLoggedIn, getWorkload);
 attendanceRoute.get(
-  "/getWorkloadOfSingleEmployee/:date/:employeeName",
+  "/getWorkloadOfSingleEmployee/:date/:userId",
   isLoggedIn,
   getWorkloadOfSingleEmployee
 );
