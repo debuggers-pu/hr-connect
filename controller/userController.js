@@ -345,7 +345,9 @@ const getUserCount = async (req, res) => {
     if (userCount === 0) {
       return res.status(404).json({ error: "No users found" });
     }
-    res.status(200).json({ userCount: userCount });
+    res.status(200).json({ 
+      message: "Total user count",
+      userCount: userCount });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error while getting user count" });

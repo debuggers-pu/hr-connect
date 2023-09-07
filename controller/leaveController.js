@@ -1,5 +1,7 @@
 const leaveModel = require("../model/leave");
 const userModel = require("../model/user");
+const moment = require("moment-timezone");
+
 
 // Create leave usng the logged in user
 const createLeave = async (req, res) => {
@@ -222,6 +224,24 @@ const removeNotification = async (req, res) => {
   }
 };
 
+// total leaves for today date
+const getTotalLeavesToday = async (req, res) => {
+  try {
+    const currentDate = moment().tz("Asia/Kathmandu").format("YYYY-MM-DD");
+    const leaves = await leaveModel.find({ startDate: currentDate });
+    const totalLeaves = leaves.length;
+    res.send({
+      message: "Total leaves today",
+      totalLeaves,
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Failed to get total leaves" });
+    
+  }
+};
+
 module.exports = {
   createLeave,
   updateLeave,
@@ -231,4 +251,5 @@ module.exports = {
   getLeavesByUser,
   getLeaveNotifications,
   removeNotification,
+  getTotalLeavesToday,
 };

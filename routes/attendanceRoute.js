@@ -7,6 +7,7 @@ const {
   getAllAttendanceByDate,
   getWorkload,
   getWorkloadOfSingleEmployee,
+  getTotalAttendanceToday
 } = require("../controller/attendanceController");
 
 const { isLoggedIn } = require("../middleware/auth");
@@ -23,5 +24,6 @@ attendanceRoute.get(
   isLoggedIn,
   getWorkloadOfSingleEmployee
 );
+attendanceRoute.get("/getTotalAttendanceToday", isLoggedIn, getTotalAttendanceToday);
 
 module.exports = attendanceRoute;

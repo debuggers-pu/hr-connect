@@ -317,6 +317,24 @@ const getWorkloadOfSingleEmployee = async (req, res) => {
   }
 };
 
+// total count of attendance today
+const getTotalAttendanceToday = async (req, res) => {
+  try {
+    const currentDate = moment().tz("Asia/Kathmandu").format("YYYY-MM-DD");
+    const attendance = await Attendance.find({ date: currentDate });
+    const totalAttendanceToday = attendance.length;
+    res.send({
+      message: "Total attendance today",
+      totalAttendanceToday,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ error: "Error while retrieving attendance records." });
+  }
+};
+
 module.exports = {
   clockIn,
   clockOut,
@@ -324,4 +342,5 @@ module.exports = {
   getAllAttendanceByDate,
   getWorkload,
   getWorkloadOfSingleEmployee,
+  getTotalAttendanceToday,
 };
