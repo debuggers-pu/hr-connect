@@ -13,6 +13,8 @@ const {
   changePassword,
   getAllUsers,
   getUserId,
+  getUserCount
+
 } = require("../controller/userController");
 const {
   validateRegisterUser,
@@ -52,5 +54,6 @@ userRoute.patch(
 );
 userRoute.get("/get-all-users", isLoggedIn, isAdmin, getAllUsers);
 userRoute.get("/getUserById/:id", isLoggedIn, isAdmin, getUserId);
+userRoute.get("/getUserCount", isLoggedIn, getUserCount);
 
 module.exports = userRoute;
