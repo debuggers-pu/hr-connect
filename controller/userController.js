@@ -338,6 +338,21 @@ const getUserId = async (req, res) => {
   }
 };
 
+// get total user count 
+const getUserCount = async (req, res) => {
+  try {
+    const userCount = await userModel.countDocuments();
+    if (userCount === 0) {
+      return res.status(404).json({ error: "No users found" });
+    }
+    res.status(200).json({ userCount: userCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error while getting user count" });
+  }
+};
+
+
 module.exports = {
   registerUser,
   emailVerify,
@@ -350,4 +365,5 @@ module.exports = {
   changePassword,
   getAllUsers,
   getUserId,
+  getUserCount
 };
