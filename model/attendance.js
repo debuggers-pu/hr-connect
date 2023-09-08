@@ -12,6 +12,14 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
       unique: false,
     },
+    userEmail: {
+      type: String,
+      required: false
+    },
+    userType: {
+      type: String,
+      required: false,
+    },
     date:{
       type: String,
       required: true,

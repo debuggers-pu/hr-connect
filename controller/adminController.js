@@ -94,13 +94,14 @@ const updateLeaveStatus = async (req, res) => {
         `Your leave request has been ${status}`
       );
     }
-    res.status(200).json({ message: "Leave status updated successfully" });
+    res.status(200).json({ message: "Leave status updated successfully",});
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Error while updating leave status" });
   }
 };
 
+// send leave notification to user whose leave status has been updated
 sendUserNotification = async (userId, title, message) => {
   try {
     const user = await userModel.findById(userId);
@@ -108,17 +109,18 @@ sendUserNotification = async (userId, title, message) => {
       return res.status(404).json({ error: "User not found" });
     }
     const notification = {
-      title: title,
-      message: message,
+      title,
+      message,
     };
     user.notification.push(notification);
     await user.save();
-    console.log("Notification sent to user");
   } catch (error) {
     console.log(error);
+    res.status(500).json({ error: "Error while sending notification" });
   }
 };
 
+// get leave notifications for user whose leave status has been updated
 const getLeaveNotificationsForUser = async (req, res) => {
   try {
     const user = await userModel.findById(req.user.id);
@@ -126,15 +128,12 @@ const getLeaveNotificationsForUser = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     const notifications = user.notification;
-    if (!notifications) {
-      return res.status(404).json({ error: "No notification found" });
-    }
-    res
-      .status(200)
-      .json({ message: "Notifications fetched successfully", notifications });
+    res.status(200).json({ message: "Notifications fetched", notifications
+  });
+
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Error while fetching notifications" });
+    res.status(500).json({ error: "Error while fetching notifications" }); 
   }
 };
 

@@ -156,7 +156,6 @@ const getLeavesByUser = async (req, res) => {
 sendAdminNotification = async (userId, title, message) => {
   try {
     const admin = await userModel.findOne({ userType: "admin", _id: userId });
-    if (!admin) return;
     const notification = {
       userId,
       title,
@@ -183,10 +182,13 @@ const getLeaveNotifications = async (req, res) => {
     if (!admin) {
       return res.status(404).json({ error: "Admin not found" });
     }
-    const notifications = admin.notification;
+    const allUsers = await userModel.find().lean();
+    let notifications = allUsers.map(data=>data.notification)
+
     if (!notifications) {
       return res.status(404).json({ error: "Notifications not found" });
     }
+    notifications = notifications.flat()
 
     res
       .status(200)

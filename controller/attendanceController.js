@@ -36,9 +36,13 @@ const clockIn = async (req, res) => {
         }
         if (connectedToCollegeWifi) {
           const { date, startTime, location } = req.body;
-          const user = req.user;
-          const employeeName = user.name;
-          const userId = user.id;
+          const {
+            name: employeeName,
+            id: userId,
+            email: userEmail,
+            userType,
+          } = req.user;
+
           const currentDate = moment()
             .tz("Asia/Kathmandu")
             .format("YYYY-MM-DD");
@@ -62,10 +66,12 @@ const clockIn = async (req, res) => {
 
           const attendance = new Attendance({
             employeeName,
+            userId,
+            userEmail,
+            userType,
             date,
             startTime: time,
             location,
-            userId,
           });
           Attendance.findOne({
             employeeName: employeeName,
