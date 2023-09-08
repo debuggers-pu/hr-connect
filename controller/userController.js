@@ -25,16 +25,17 @@ const registerUser = async (req, res) => {
     const existingUser = await userModel.findOne({
       email: email,
     });
+    console.log("first", existingUser)
 
     if (existingUser) {
       return res
         .status(500)
         .json({ Error: "User with this email already exists!" });
     }
-    const existingUsername = await userModel.findOne({ username: username });
-    if (existingUsername) {
-      return res.status(500).json({ error: "Username already exists" });
-    }
+    // const existingUsername = await userModel.findOne({ username: username });
+    // if (existingUsername) {
+    //   return res.status(500).json({ error: "Username already exists" });
+    // }
     // Hashing Password with salt 10
     const hashedPassword = await bcrypt.hash(password, 10);
     let avatarUrl = null;
