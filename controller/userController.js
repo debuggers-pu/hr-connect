@@ -25,7 +25,6 @@ const registerUser = async (req, res) => {
     const existingUser = await userModel.findOne({
       email: email,
     });
-    console.log("first", existingUser)
 
     if (existingUser) {
       return res
